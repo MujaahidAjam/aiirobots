@@ -8,7 +8,7 @@ const Footer = () => {
   };
 
   const handleEmailClick = () => {
-    window.location.href = 'mailto:ajammujaahid9@gmail.com?subject=Free%20Consultation%20Request';
+    window.location.href = 'mailto:aiirobots.co@gmail.com?subject=Free%20Consultation%20Request';
   };
 
   const scrollToSection = (href) => {
@@ -39,7 +39,7 @@ const Footer = () => {
                 className="flex items-center text-gray-300 hover:text-blue-400 cursor-pointer transition-colors duration-200"
               >
                 <Mail className="h-5 w-5 mr-3" />
-                <span>ajammujaahid9@gmail.com</span>
+                <span>aiirobots.co@gmail.com</span>
               </div>
               <div
                 onClick={handleWhatsAppClick}

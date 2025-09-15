@@ -33,7 +33,7 @@ const ContactForm = () => {
         `---\nThis is a free consultation request from the Aiirobots website.`
       );
       
-      const mailtoLink = `mailto:ajammujaahid9@gmail.com?subject=${subject}&body=${body}`;
+      const mailtoLink = `mailto:aiirobots.co@gmail.com?subject=${subject}&body=${body}`;
       window.location.href = mailtoLink;
       
       setSubmitStatus('success');
@@ -50,7 +50,7 @@ const ContactForm = () => {
   };
 
   const handleEmailClick = () => {
-    window.location.href = 'mailto:ajammujaahid9@gmail.com?subject=Free%20Consultation%20Request';
+    window.location.href = 'mailto:aiirobots.co@gmail.com?subject=Free%20Consultation%20Request';
   };
 
   return (
@@ -82,7 +82,7 @@ const ContactForm = () => {
                 </div>
                 <div className="ml-6">
                   <h4 className="text-lg font-semibold text-gray-900">Email Us</h4>
-                  <p className="text-blue-600 group-hover:underline">ajammujaahid9@gmail.com</p>
+                  <p className="text-blue-600 group-hover:underline">aiirobots.co@gmail.com</p>
                   <p className="text-sm text-gray-500">Get your free consultation via email</p>
                 </div>
               </div>
