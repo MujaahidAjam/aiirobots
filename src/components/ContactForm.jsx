@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Mail } from 'lucide-react';
+import { Send, Mail, Phone } from 'lucide-react';
 import WhatsAppIcon from './icons/WhatsAppIcon';
 
 const ContactForm = () => {
@@ -98,6 +98,20 @@ const ContactForm = () => {
                   <h4 className="text-lg font-semibold text-gray-900">WhatsApp</h4>
                   <p className="text-green-600 group-hover:underline">064 047 2350</p>
                   <p className="text-sm text-gray-500">Quick response for urgent inquiries</p>
+                </div>
+              </div>
+
+              <div
+                className="flex items-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                aria-label="Call us at 064 047 2350"
+              >
+                <div className="bg-gray-100 p-4 rounded-lg flex items-center justify-center">
+                  <Phone className="h-6 w-6 text-gray-700" />
+                </div>
+                <div className="ml-6">
+                  <h4 className="text-lg font-semibold text-gray-900">Call Us</h4>
+                  <p className="text-gray-800">064 047 2350</p>
+                  <p className="text-sm text-gray-500">Speak directly with our team</p>
                 </div>
               </div>
             </div>
