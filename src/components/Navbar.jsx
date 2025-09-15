@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Menu, X, Bot } from 'lucide-react';
 
+const navigation = [
+  { name: 'Home', href: '#home' },
+  { name: 'Services', href: '#services' },
+  { name: 'About', href: '#about' },
+  { name: 'Contact', href: '#contact' },
+];
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const navigation = [
-    { name: 'Home', href: '#home' },
-    { name: 'Services', href: '#services' },
-    { name: 'About', href: '#about' },
-    { name: 'Contact', href: '#contact' },
-  ];
 
   const scrollToSection = (href) => {
     const element = document.querySelector(href);
