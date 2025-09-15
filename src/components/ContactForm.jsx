@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Mail, MessageSquare } from 'lucide-react';
+import { Send, Mail } from 'lucide-react';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -9,21 +9,20 @@ const ContactForm = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState('idle');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      // Create mailto link with form data
       const subject = encodeURIComponent(`Free Consultation Request - ${formData.service || 'General Inquiry'}`);
       const body = encodeURIComponent(
         `Name: ${formData.name}\n` +
@@ -237,3 +236,5 @@ const ContactForm = () => {
 };
 
 export default ContactForm;
+
+

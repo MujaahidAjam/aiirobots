@@ -1,15 +1,7 @@
 import React from 'react';
-import { ArrowRight, DivideIcon as LucideIcon } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-interface ServiceCardProps {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  features: string[];
-  price: string;
-}
-
-const ServiceCard: React.FC<ServiceCardProps> = ({ icon: Icon, title, description, features, price }) => {
+const ServiceCard = ({ icon: Icon, title, description, features, price }) => {
   const scrollToContact = () => {
     const element = document.querySelector('#contact');
     if (element) {
@@ -55,3 +47,5 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon: Icon, title, descriptio
 };
 
 export default ServiceCard;
+
+

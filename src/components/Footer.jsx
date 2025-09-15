@@ -10,7 +10,7 @@ const Footer = () => {
     window.location.href = 'mailto:ajammujaahid9@gmail.com?subject=Free%20Consultation%20Request';
   };
 
-  const scrollToSection = (href: string) => {
+  const scrollToSection = (href) => {
     const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -118,3 +118,5 @@ const Footer = () => {
 };
 
 export default Footer;
+
+
