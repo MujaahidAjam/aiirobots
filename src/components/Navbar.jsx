@@ -4,6 +4,7 @@ import { Menu, X, Bot } from 'lucide-react';
 const navigation = [
   { name: 'Home', href: '#home' },
   { name: 'Services', href: '#services' },
+  { name: 'Our Work', href: '#our-work' },
   { name: 'About', href: '#about' },
   { name: 'Contact', href: '#contact' },
 ];

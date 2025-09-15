@@ -15,8 +15,7 @@ const Services = () => {
         'E-commerce integration',
         'Performance optimization',
         'Ongoing maintenance & support'
-      ],
-      price: 'R5,000'
+      ]
     },
     {
       icon: Bot,
@@ -29,8 +28,7 @@ const Services = () => {
         'Integration with existing systems',
         'Analytics and reporting',
         'Continuous learning & improvement'
-      ],
-      price: 'R2,500'
+      ]
     },
     {
       icon: Laptop,
@@ -43,8 +41,7 @@ const Services = () => {
         'Virus removal & security',
         'Performance optimization',
         'Warranty on all repairs'
-      ],
-      price: 'R500'
+      ]
     }
   ];
 

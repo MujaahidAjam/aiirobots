@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 
-const ServiceCard = ({ icon: Icon, title, description, features, price }) => {
+const ServiceCard = ({ icon: Icon, title, description, features }) => {
   const scrollToContact = () => {
     const element = document.querySelector('#contact');
     if (element) {
@@ -30,10 +30,6 @@ const ServiceCard = ({ icon: Icon, title, description, features, price }) => {
       </ul>
       
       <div className="border-t pt-6">
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-bold text-blue-600">{price}</span>
-          <span className="text-gray-500 text-sm">Starting from</span>
-        </div>
         <button
           onClick={scrollToContact}
           className="group w-full bg-gray-900 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-all duration-300 flex items-center justify-center font-semibold"
