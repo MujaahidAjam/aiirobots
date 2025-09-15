@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bot, Mail } from 'lucide-react';
+import { openMailto } from '../utils/links';
 import WhatsAppIcon from './icons/WhatsAppIcon';
 
 const Footer = () => {
@@ -8,7 +9,7 @@ const Footer = () => {
   };
 
   const handleEmailClick = () => {
-    window.location.href = 'mailto:aiirobots.co@gmail.com?subject=Free%20Consultation%20Request';
+    openMailto('aiirobots.co@gmail.com', 'Free Consultation Request');
   };
 
   const scrollToSection = (href) => {

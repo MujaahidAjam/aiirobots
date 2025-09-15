@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Mail, Phone } from 'lucide-react';
 import WhatsAppIcon from './icons/WhatsAppIcon';
+import { openMailto } from '../utils/links';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -33,8 +34,7 @@ const ContactForm = () => {
         `---\nThis is a free consultation request from the Aiirobots website.`
       );
       
-      const mailtoLink = `mailto:aiirobots.co@gmail.com?subject=${subject}&body=${body}`;
-      window.location.href = mailtoLink;
+      openMailto('aiirobots.co@gmail.com', subject, body);
       
       setSubmitStatus('success');
       setFormData({ name: '', email: '', service: '', message: '' });
@@ -50,7 +50,7 @@ const ContactForm = () => {
   };
 
   const handleEmailClick = () => {
-    window.location.href = 'mailto:aiirobots.co@gmail.com?subject=Free%20Consultation%20Request';
+    openMailto('aiirobots.co@gmail.com', 'Free Consultation Request');
   };
 
   return (
