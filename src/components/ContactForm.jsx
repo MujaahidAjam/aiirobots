@@ -20,30 +20,56 @@ const ContactForm = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      const subject = encodeURIComponent(`Free Consultation Request - ${formData.service || 'General Inquiry'}`);
-      const body = encodeURIComponent(
-        `Name: ${formData.name}\n` +
-        `Email: ${formData.email}\n` +
-        `Service Interest: ${formData.service || 'Not specified'}\n\n` +
-        `Message:\n${formData.message}\n\n` +
-        `---\nThis is a free consultation request from the Aiirobots website.`
-      );
-      
-      openMailto('aiirobots.co@gmail.com', subject, body);
-      
+  
+const encode = (data) =>
+  Object.keys(data)
+    .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+    .join('&');
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setSubmitStatus('idle');
+  try {
+    // Netlify form submission
+    const payload = {
+      'form-name': 'contact',
+      'name': formData.name,
+      'email': formData.email,
+      'service': formData.service || 'General Inquiry',
+      'message': formData.message
+    };
+
+    const res = await fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: encode(payload)
+    });
+
+    if (res.ok) {
       setSubmitStatus('success');
       setFormData({ name: '', email: '', service: '', message: '' });
-    } catch (error) {
-      setSubmitStatus('error');
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      throw new Error('Netlify submission failed');
     }
-  };
+  } catch (err) {
+    // Fallback to mailto if fetch fails / not hosted on Netlify
+    try {
+      const body = `Name: ${formData.name}
+Email: ${formData.email}
+Service: ${formData.service || 'General Inquiry'}
+Message:
+${formData.message}`;
+      openMailto('aiirobots.co@gmail.com', 'Free Consultation Request', body);
+      setSubmitStatus('success');
+    } catch {
+      setSubmitStatus('error');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const handleWhatsAppClick = () => {
     window.open('https://wa.me/27640472350?text=Hello%2C%20I%27m%20interested%20in%20a%20free%20consultation%20for%20your%20services', '_blank');
@@ -54,7 +80,7 @@ const ContactForm = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-gray-50">
+    <section id="contact" className="py-20 bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Get In Touch</h2>
@@ -120,19 +146,19 @@ const ContactForm = () => {
               <h4 className="text-lg font-semibold text-gray-900 mb-4">What You Get in Your Free Consultation:</h4>
               <ul className="space-y-3 text-gray-600">
                 <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   Personalized technology assessment
                 </li>
                 <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   Custom solution recommendations
                 </li>
                 <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   Detailed project timeline & pricing
                 </li>
                 <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   No pressure, no obligations
                 </li>
               </ul>
@@ -146,7 +172,7 @@ const ContactForm = () => {
               <p className="text-gray-600">Fill out the form below and we'll get back to you within 24 hours</p>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form name="contact" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name *
@@ -217,7 +243,7 @@ const ContactForm = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-all duration-300 flex items-center justify-center font-semibold"
+                className="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-all duration-300 flex items-center justify-center font-semibold"
               >
                 {isSubmitting ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>

@@ -103,7 +103,7 @@ const TestimonialCard = ({ company, role, quote, person, rating, index }) => (
     viewport={{ once: true, amount: 0.2 }}
     transition={{ duration: 0.5, delay: index * 0.08 }}
     whileHover={{ y: -6, boxShadow: '0 10px 25px rgba(59,130,246,0.15)' }}
-    className="rounded-xl p-6 bg-white/70 backdrop-blur border border-white/40 shadow-sm hover:shadow-lg transition-all duration-300"
+    className="rounded-xl p-6 bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm hover:shadow-lg/50 transition-all duration-300"
   >
     <div className="mb-4 flex items-start justify-between">
       <div>
