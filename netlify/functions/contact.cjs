@@ -1,5 +1,5 @@
-// netlify/functions/contact.js (ESM)
-import { Resend } from 'resend';
+// netlify/functions/contact.cjs
+const { Resend } = require('resend');
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +7,7 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-export async function handler(event) {
+exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: CORS, body: 'ok' };
   }
@@ -31,13 +31,16 @@ export async function handler(event) {
 
     const apiKey = process.env.RESEND_API_KEY;
     const toEmail = process.env.TO_EMAIL || 'aiirobots@gmail.com';
-    const fromEmail = process.env.FROM_EMAIL; // REQUIRED to avoid secret-scan false positive
+    const fromEmail = process.env.FROM_EMAIL; // REQUIRED, no hard-coded fallback
 
     if (!apiKey || !fromEmail) {
       return {
         statusCode: 500,
         headers: CORS,
-        body: JSON.stringify({ ok: false, error: 'Missing server config (RESEND_API_KEY or FROM_EMAIL)' }),
+        body: JSON.stringify({
+          ok: false,
+          error: 'Missing server config (RESEND_API_KEY or FROM_EMAIL)',
+        }),
       };
     }
 
@@ -59,7 +62,7 @@ export async function handler(event) {
       `,
     });
 
-    // Optional auto-reply
+    // Optional auto-reply (best effort)
     try {
       await resend.emails.send({
         from: fromEmail,
@@ -71,6 +74,10 @@ export async function handler(event) {
 
     return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
   } catch (e) {
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ ok: false, error: e.message }) };
+    return {
+      statusCode: 500,
+      headers: CORS,
+      body: JSON.stringify({ ok: false, error: e.message }),
+    };
   }
-}
+};
