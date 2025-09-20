@@ -6,7 +6,7 @@ import { openEmailCompose } from '../utils/links';
 /**
  * ContactForm
  * - Primary submit path: Netlify Function (/.netlify/functions/contact) -> Resend email
- * - Fallbacks: Netlify Forms (hidden) and Gmail compose if function/network fails
+ * - Fallbacks: Netlify Forms (hidden) and (final) show error (no mail client popup)
  * - Includes simple honeypot ('company') to deter bots
  * - Adds image collage for visual richness using assets in /public/images
  */
@@ -60,7 +60,7 @@ const ContactForm = () => {
       setSubmitStatus('success');
       setFormData({ name: '', email: '', service: '', message: '', company: '' });
     } catch (err) {
-      // 2) Fallback to Netlify Forms (if configured) to avoid user drop-off
+      // 2) Fallback to Netlify Forms (if configured)
       try {
         const payload = {
           'form-name': 'contact',
@@ -81,18 +81,8 @@ const ContactForm = () => {
           throw new Error('Netlify form submission failed');
         }
       } catch {
-        // 3) Final fallback -> open Gmail compose directly
-        try {
-          const body = `Name: ${formData.name}
-Email: ${formData.email}
-Service: ${formData.service || 'General Inquiry'}
-Message:
-${formData.message}`;
-          openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request', body, 'gmail');
-          setSubmitStatus('success');
-        } catch {
-          setSubmitStatus('error');
-        }
+        // 3) Final: stay silent (no Gmail/OS popup). Show error message.
+        setSubmitStatus('error');
       }
     } finally {
       setIsSubmitting(false);
@@ -100,12 +90,15 @@ ${formData.message}`;
   };
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/27640472350?text=Hello%2C%20I%27m%20interested%20in%20a%20free%20consultation%20for%20your%20services', '_blank');
+    window.open(
+      'https://wa.me/27640472350?text=Hello%2C%20I%27m%20interested%20in%20a%20free%20consultation%20for%20your%20services',
+      '_blank'
+    );
   };
 
   const handleEmailClick = () => {
-    // Open Gmail compose directly (no provider chooser)
-    openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request', '', 'gmail');
+    // Open Gmail compose directly for users who click the Email card
+    openEmailCompose('aiirobots@gmail.com', 'Free Consultation Request', '', 'gmail');
   };
 
   return (
@@ -171,7 +164,7 @@ ${formData.message}`;
                 </div>
                 <div className="ml-6">
                   <h4 className="text-lg font-semibold text-gray-900">Email Us</h4>
-                  <p className="text-blue-600 group-hover:underline">aiirobots.co@gmail.com</p>
+                  <p className="text-blue-600 group-hover:underline">aiirobots@gmail.com</p>
                   <p className="text-sm text-gray-500">Get your free consultation via email</p>
                 </div>
               </div>
@@ -220,11 +213,17 @@ ${formData.message}`;
               <p className="text-gray-600">Fill out the form below and we'll get back to you within 24 hours</p>
             </div>
 
-            <form name="contact" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit} className="space-y-6">
+            <form
+              name="contact"
+              data-netlify="true"
+              netlify-honeypot="company"
+              onSubmit={handleSubmit}
+              className="space-y-6"
+            >
               {/* Required for Netlify Forms fallback */}
               <input type="hidden" name="form-name" value="contact" />
               {/* Honeypot */}
-              <div className="hidden">
+              <div className="hidden" aria-hidden="true">
                 <label>Company<input name="company" value={formData.company} onChange={handleChange} /></label>
               </div>
 
