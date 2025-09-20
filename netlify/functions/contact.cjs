@@ -30,7 +30,7 @@ exports.handler = async (event) => {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const toEmail = process.env.TO_EMAIL || 'aiirobots@gmail.com';
+    const toEmail = process.env.TO_EMAIL || 'aiirobotsaiweb@gmail.com';
     const fromEmail = process.env.FROM_EMAIL; // REQUIRED, no hard-coded fallback
 
     if (!apiKey || !fromEmail) {
