@@ -59,7 +59,7 @@ const ContactForm = () => {
 
       setSubmitStatus('success');
       setFormData({ name: '', email: '', service: '', message: '', company: '' });
-    } catch (err) {
+    } catch {
       // 2) Fallback to Netlify Forms (if configured)
       try {
         const payload = {
@@ -81,7 +81,7 @@ const ContactForm = () => {
           throw new Error('Netlify form submission failed');
         }
       } catch {
-        // 3) Final: stay silent (no Gmail/OS popup). Show error message.
+        // 3) Final: show error (no Gmail/OS popup)
         setSubmitStatus('error');
       }
     } finally {
@@ -98,7 +98,7 @@ const ContactForm = () => {
 
   const handleEmailClick = () => {
     // Open Gmail compose directly for users who click the Email card
-    openEmailCompose('aiirobots@gmail.com', 'Free Consultation Request', '', 'gmail');
+    openEmailCompose('aiirobotsaiweb@gmail.com', 'Free Consultation Request', '', 'gmail');
   };
 
   return (
@@ -164,7 +164,7 @@ const ContactForm = () => {
                 </div>
                 <div className="ml-6">
                   <h4 className="text-lg font-semibold text-gray-900">Email Us</h4>
-                  <p className="text-blue-600 group-hover:underline">aiirobots@gmail.com</p>
+                  <p className="text-blue-600 group-hover:underline">aiirobotsaiweb@gmail.com</p>
                   <p className="text-sm text-gray-500">Get your free consultation via email</p>
                 </div>
               </div>
@@ -220,9 +220,7 @@ const ContactForm = () => {
               onSubmit={handleSubmit}
               className="space-y-6"
             >
-              {/* Required for Netlify Forms fallback */}
               <input type="hidden" name="form-name" value="contact" />
-              {/* Honeypot */}
               <div className="hidden" aria-hidden="true">
                 <label>Company<input name="company" value={formData.company} onChange={handleChange} /></label>
               </div>
