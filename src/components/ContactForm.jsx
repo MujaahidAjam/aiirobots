@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import { Send, Mail, Phone } from 'lucide-react';
 import WhatsAppIcon from './icons/WhatsAppIcon';
-import { openMailto } from '../utils/links';
+import { openMailto, openEmailCompose, setEmailProviderPreference, getEmailProviderPreference } from '../utils/links';
 
+/**
+ * ContactForm
+ * - Primary submit path: Netlify Function (/.netlify/functions/contact) -> Resend email
+ * - Fallbacks: Netlify Forms (hidden) and mailto if function/network fails
+ * - Includes simple honeypot ('company') to deter bots
+ * - Adds image collage for visual richness using assets in /public/images
+ */
 const ContactForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     service: '',
-    message: ''
+    message: '',
+    company: '' // honeypot
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('idle');
@@ -20,63 +28,83 @@ const ContactForm = () => {
     });
   };
 
-  
-const encode = (data) =>
-  Object.keys(data)
-    .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
-    .join('&');
+  const encode = (data) =>
+    Object.keys(data)
+      .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+      .join('&');
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setSubmitStatus('idle');
-  try {
-    // Netlify form submission
-    const payload = {
-      'form-name': 'contact',
-      'name': formData.name,
-      'email': formData.email,
-      'service': formData.service || 'General Inquiry',
-      'message': formData.message
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.company) return; // honeypot filled -> likely bot
 
-    const res = await fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: encode(payload)
-    });
-
-    if (res.ok) {
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', service: '', message: '' });
-    } else {
-      throw new Error('Netlify submission failed');
-    }
-  } catch (err) {
-    // Fallback to mailto if fetch fails / not hosted on Netlify
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
     try {
-      const body = `Name: ${formData.name}
+      // 1) Try serverless function
+      const res = await fetch('/.netlify/functions/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          service: formData.service || 'General Inquiry',
+          message: formData.message
+        }),
+      });
+
+      if (!res.ok) throw new Error('Function responded with non-200');
+
+      const json = await res.json();
+      if (!json.ok) throw new Error('Email not accepted by provider');
+
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', service: '', message: '', company: '' });
+    } catch (err) {
+      // 2) Fallback to Netlify Forms (if configured) to avoid user drop-off
+      try {
+        const payload = {
+          'form-name': 'contact',
+          'name': formData.name,
+          'email': formData.email,
+          'service': formData.service || 'General Inquiry',
+          'message': formData.message,
+        };
+        const res = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: encode(payload),
+        });
+        if (res.ok) {
+          setSubmitStatus('success');
+          setFormData({ name: '', email: '', service: '', message: '', company: '' });
+        } else {
+          throw new Error('Netlify form submission failed');
+        }
+      } catch {
+        // 3) Final fallback -> open mail client
+        try {
+          const body = `Name: ${formData.name}
 Email: ${formData.email}
 Service: ${formData.service || 'General Inquiry'}
 Message:
 ${formData.message}`;
-      openMailto('aiirobots.co@gmail.com', 'Free Consultation Request', body);
-      setSubmitStatus('success');
-    } catch {
-      setSubmitStatus('error');
+          openMailto(process.env?.REACT_APP_CONTACT_EMAIL || 'aiirobots.co@gmail.com', 'Free Consultation Request', body);
+          setSubmitStatus('success');
+        } catch {
+          setSubmitStatus('error');
+        }
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  };
 
   const handleWhatsAppClick = () => {
     window.open('https://wa.me/27640472350?text=Hello%2C%20I%27m%20interested%20in%20a%20free%20consultation%20for%20your%20services', '_blank');
   };
 
   const handleEmailClick = () => {
-    openMailto('aiirobots.co@gmail.com', 'Free Consultation Request');
+    openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request');
   };
 
   return (
@@ -93,11 +121,46 @@ ${formData.message}`;
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Contact Information */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* Left: Contact Information + Image collage */}
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-8">Let's Start Your Free Consultation</h3>
-            
+
+            {/* Collage */}
+            <div className="grid grid-cols-6 gap-3 mb-8">
+              <img
+                src="/images/pexels-cottonbro-6153354.jpg"
+                alt="AI & human collaboration"
+                className="col-span-6 h-48 md:h-56 w-full rounded-xl shadow-md object-cover"
+                loading="lazy"
+              />
+              <img
+                src="/images/pexels-goumbik-574070.jpg"
+                alt="Planning & coding"
+                className="col-span-3 h-28 md:h-32 w-full rounded-xl shadow-md object-cover"
+                loading="lazy"
+              />
+              <img
+                src="/images/pexels-goumbik-574071.jpg"
+                alt="Web development"
+                className="col-span-3 h-28 md:h-32 w-full rounded-xl shadow-md object-cover"
+                loading="lazy"
+              />
+              <img
+                src="/images/pexels-it-services-eu-9278798-7639370.jpg"
+                alt="Laptop repair"
+                className="col-span-3 h-28 md:h-32 w-full rounded-xl shadow-md object-cover"
+                loading="lazy"
+              />
+              <img
+                src="/images/pexels-kieutruongphoto-15554492.jpg"
+                alt="Hardware upgrades"
+                className="col-span-3 h-28 md:h-32 w-full rounded-xl shadow-md object-cover"
+                loading="lazy"
+              />
+            </div>
+
+
             <div className="space-y-6 mb-8">
               <div
                 onClick={handleEmailClick}
@@ -112,6 +175,18 @@ ${formData.message}`;
                   <p className="text-sm text-gray-500">Get your free consultation via email</p>
                 </div>
               </div>
+              {/* Quick provider preference */}
+              <div className="text-xs text-gray-500 mt-2 ml-16">
+                Open in:
+                <button type="button" className="ml-2 underline hover:no-underline" onClick={() => { setEmailProviderPreference('gmail'); openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Gmail</button>
+                <span className="mx-1">•</span>
+                <button type="button" className="underline hover:no-underline" onClick={() => { setEmailProviderPreference('outlook'); openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Outlook</button>
+                <span className="mx-1">•</span>
+                <button type="button" className="underline hover:no-underline" onClick={() => { setEmailProviderPreference('yahoo'); openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Yahoo</button>
+                <span className="mx-1">•</span>
+                <button type="button" className="underline hover:no-underline" onClick={() => { setEmailProviderPreference('default'); openMailto('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Default app</button>
+              </div>
+
 
               <div
                 onClick={handleWhatsAppClick}
@@ -127,10 +202,7 @@ ${formData.message}`;
                 </div>
               </div>
 
-              <div
-                className="flex items-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                aria-label="Call us at 064 047 2350"
-              >
+              <div className="flex items-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300" aria-label="Call us at 064 047 2350">
                 <div className="bg-gray-100 p-4 rounded-lg flex items-center justify-center">
                   <Phone className="h-6 w-6 text-gray-700" />
                 </div>
@@ -145,38 +217,31 @@ ${formData.message}`;
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 rounded-xl">
               <h4 className="text-lg font-semibold text-gray-900 mb-4">What You Get in Your Free Consultation:</h4>
               <ul className="space-y-3 text-gray-600">
-                <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  Personalized technology assessment
-                </li>
-                <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  Custom solution recommendations
-                </li>
-                <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  Detailed project timeline & pricing
-                </li>
-                <li className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  No pressure, no obligations
-                </li>
+                <li className="flex items-start"><div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>Personalized technology assessment</li>
+                <li className="flex items-start"><div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>Custom solution recommendations</li>
+                <li className="flex items-start"><div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>Detailed project timeline &amp; pricing</li>
+                <li className="flex items-start"><div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>No pressure, no obligations</li>
               </ul>
             </div>
           </div>
 
-          {/* Contact Form */}
+          {/* Right: Form */}
           <div className="bg-white p-8 rounded-xl shadow-lg">
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold text-gray-900 mb-2">Request Your Free Consultation</h3>
               <p className="text-gray-600">Fill out the form below and we'll get back to you within 24 hours</p>
             </div>
-            
+
             <form name="contact" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit} className="space-y-6">
+              {/* Required for Netlify Forms fallback */}
+              <input type="hidden" name="form-name" value="contact" />
+              {/* Honeypot */}
+              <div className="hidden">
+                <label>Company<input name="company" value={formData.company} onChange={handleChange} /></label>
+              </div>
+
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
-                </label>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                 <input
                   type="text"
                   id="name"
@@ -190,9 +255,7 @@ ${formData.message}`;
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address *
-                </label>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
                 <input
                   type="email"
                   id="email"
@@ -206,9 +269,7 @@ ${formData.message}`;
               </div>
 
               <div>
-                <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-2">
-                  Service Interest
-                </label>
+                <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-2">Service Interest</label>
                 <select
                   id="service"
                   name="service"
@@ -224,10 +285,9 @@ ${formData.message}`;
                   <option value="General Consultation">General Consultation</option>
                 </select>
               </div>
+
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                  Message *
-                </label>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
                 <textarea
                   id="message"
                   name="message"
@@ -243,7 +303,7 @@ ${formData.message}`;
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-all duration-300 flex items-center justify-center font-semibold"
+                className="w-full bg-blue-600 focus:ring-4 focus:ring-blue-200 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-all duration-300 flex items-center justify-center font-semibold"
               >
                 {isSubmitting ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -255,17 +315,18 @@ ${formData.message}`;
                 )}
               </button>
 
-              {submitStatus === 'success' && (
-                <div className="text-center text-green-600 font-medium">
-                  Thank you! Your free consultation request has been sent. We'll respond within 24 hours.
-                </div>
-              )}
-              
-              {submitStatus === 'error' && (
-                <div className="text-center text-red-600 font-medium">
-                  There was an error sending your request. Please try again or contact us directly.
-                </div>
-              )}
+              <div aria-live="polite">
+                {submitStatus === 'success' && (
+                  <div className="text-center text-green-600 font-medium">
+                    Thank you! Your request has been sent. We'll respond within 24 hours.
+                  </div>
+                )}
+                {submitStatus === 'error' && (
+                  <div className="text-center text-red-600 font-medium">
+                    There was an error sending your request. Please try again or contact us directly.
+                  </div>
+                )}
+              </div>
             </form>
           </div>
         </div>
@@ -275,5 +336,3 @@ ${formData.message}`;
 };
 
 export default ContactForm;
-
-

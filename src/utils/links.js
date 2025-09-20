@@ -1,28 +1,29 @@
-export function openMailto(to, subject, body = '') {
-  try {
-    const params = [];
-    if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
-    if (body) params.push(`body=${encodeURIComponent(body)}`);
-    const query = params.length ? `?${params.join('&')}` : '';
-    const href = `mailto:${encodeURIComponent(to)}${query}`;
+// src/utils/links.js
+const enc = encodeURIComponent;
 
-    const anchor = document.createElement('a');
-    anchor.href = href;
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    setTimeout(() => {
-      if (anchor && anchor.parentNode) {
-        anchor.parentNode.removeChild(anchor);
-      }
-    }, 0);
-  } catch (e) {
-    try {
-      window.location.assign(`mailto:${to}`);
-    } catch (_) {
-      // noop: if no mail client is configured, nothing else to do here
-    }
+export const setEmailProviderPreference = (provider) => {
+  try { localStorage.setItem('emailProvider', provider); } catch { }
+};
+
+export const getEmailProviderPreference = () => {
+  try { return localStorage.getItem('emailProvider') || 'gmail'; }
+  catch { return 'gmail'; }
+};
+
+export const openEmailCompose = (to, subject = '', body = '', explicitProvider) => {
+  const provider = explicitProvider || getEmailProviderPreference();
+  const urls = {
+    gmail: `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}&su=${enc(subject)}&body=${enc(body)}`,
+    outlook: `https://outlook.live.com/owa/?path=/mail/action/compose&to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`,
+    yahoo: `https://compose.mail.yahoo.com/?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`,
+    default: `mailto:${to}?subject=${enc(subject)}&body=${enc(body)}`,
+  };
+  const win = window.open(urls[provider] || urls.gmail, '_blank', 'noopener');
+  if (!win || win.closed || typeof win.closed === 'undefined') {
+    window.location.href = urls.default; // popup blocked fallback
   }
-}
+};
 
-
+export const openMailto = (to, subject = '', body = '') => {
+  window.location.href = `mailto:${to}?subject=${enc(subject)}&body=${enc(body)}`;
+};
