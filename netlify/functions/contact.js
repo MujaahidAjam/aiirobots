@@ -1,5 +1,5 @@
-// netlify/functions/contact.cjs
-const { Resend } = require('resend');
+// netlify/functions/contact.js
+import { Resend } from 'resend';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -7,44 +7,23 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-exports.handler = async (event) => {
+export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: CORS, body: 'ok' };
   }
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: CORS,
-      body: JSON.stringify({ ok: false, error: 'Method not allowed' }),
-    };
+    return { statusCode: 405, headers: CORS, body: JSON.stringify({ ok: false, error: 'Method not allowed' }) };
   }
 
   try {
     const { name, email, service, message } = JSON.parse(event.body || '{}');
     if (!name || !email || !message) {
-      return {
-        statusCode: 400,
-        headers: CORS,
-        body: JSON.stringify({ ok: false, error: 'Missing fields' }),
-      };
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ ok: false, error: 'Missing fields' }) };
     }
 
-    const apiKey = process.env.RESEND_API_KEY;
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const toEmail = process.env.TO_EMAIL || 'aiirobotsaiweb@gmail.com';
-    const fromEmail = process.env.FROM_EMAIL; // REQUIRED, no hard-coded fallback
-
-    if (!apiKey || !fromEmail) {
-      return {
-        statusCode: 500,
-        headers: CORS,
-        body: JSON.stringify({
-          ok: false,
-          error: 'Missing server config (RESEND_API_KEY or FROM_EMAIL)',
-        }),
-      };
-    }
-
-    const resend = new Resend(apiKey);
+    const fromEmail = process.env.FROM_EMAIL || 'AiiRobots <noreply@mail.aiirobots.co.za>';
 
     // Send to you
     await resend.emails.send({
@@ -62,7 +41,7 @@ exports.handler = async (event) => {
       `,
     });
 
-    // Optional auto-reply (best effort)
+    // (Best-effort) auto-reply
     try {
       await resend.emails.send({
         from: fromEmail,
@@ -74,10 +53,6 @@ exports.handler = async (event) => {
 
     return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
   } catch (e) {
-    return {
-      statusCode: 500,
-      headers: CORS,
-      body: JSON.stringify({ ok: false, error: e.message }),
-    };
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ ok: false, error: e.message }) };
   }
-};
+}
