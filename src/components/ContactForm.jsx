@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Send, Mail, Phone } from 'lucide-react';
 import WhatsAppIcon from './icons/WhatsAppIcon';
-import { openMailto, openEmailCompose, setEmailProviderPreference, getEmailProviderPreference } from '../utils/links';
+import { openEmailCompose } from '../utils/links';
 
 /**
  * ContactForm
  * - Primary submit path: Netlify Function (/.netlify/functions/contact) -> Resend email
- * - Fallbacks: Netlify Forms (hidden) and mailto if function/network fails
+ * - Fallbacks: Netlify Forms (hidden) and Gmail compose if function/network fails
  * - Includes simple honeypot ('company') to deter bots
  * - Adds image collage for visual richness using assets in /public/images
  */
@@ -81,14 +81,14 @@ const ContactForm = () => {
           throw new Error('Netlify form submission failed');
         }
       } catch {
-        // 3) Final fallback -> open mail client
+        // 3) Final fallback -> open Gmail compose directly
         try {
           const body = `Name: ${formData.name}
 Email: ${formData.email}
 Service: ${formData.service || 'General Inquiry'}
 Message:
 ${formData.message}`;
-          openMailto(process.env?.REACT_APP_CONTACT_EMAIL || 'aiirobots.co@gmail.com', 'Free Consultation Request', body);
+          openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request', body, 'gmail');
           setSubmitStatus('success');
         } catch {
           setSubmitStatus('error');
@@ -104,7 +104,8 @@ ${formData.message}`;
   };
 
   const handleEmailClick = () => {
-    openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request');
+    // Open Gmail compose directly (no provider chooser)
+    openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request', '', 'gmail');
   };
 
   return (
@@ -160,7 +161,6 @@ ${formData.message}`;
               />
             </div>
 
-
             <div className="space-y-6 mb-8">
               <div
                 onClick={handleEmailClick}
@@ -175,18 +175,6 @@ ${formData.message}`;
                   <p className="text-sm text-gray-500">Get your free consultation via email</p>
                 </div>
               </div>
-              {/* Quick provider preference */}
-              <div className="text-xs text-gray-500 mt-2 ml-16">
-                Open in:
-                <button type="button" className="ml-2 underline hover:no-underline" onClick={() => { setEmailProviderPreference('gmail'); openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Gmail</button>
-                <span className="mx-1">•</span>
-                <button type="button" className="underline hover:no-underline" onClick={() => { setEmailProviderPreference('outlook'); openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Outlook</button>
-                <span className="mx-1">•</span>
-                <button type="button" className="underline hover:no-underline" onClick={() => { setEmailProviderPreference('yahoo'); openEmailCompose('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Yahoo</button>
-                <span className="mx-1">•</span>
-                <button type="button" className="underline hover:no-underline" onClick={() => { setEmailProviderPreference('default'); openMailto('aiirobots.co@gmail.com', 'Free Consultation Request'); }}>Default app</button>
-              </div>
-
 
               <div
                 onClick={handleWhatsAppClick}
